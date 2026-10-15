@@ -1,0 +1,5 @@
+{
+  "rules": {
+    "conventions/tanstack-middleware-file": "error"
+  }
+}

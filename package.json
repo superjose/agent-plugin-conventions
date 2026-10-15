@@ -1,0 +1,49 @@
+{
+  "name": "@superjose/agent-plugin-conventions",
+  "version": "0.1.0",
+  "description": "Shared domain, Effect operation, React and TanStack architecture conventions for Oxlint and ESLint.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Jose Asilis",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/superjose/agent-plugin-conventions.git"
+  },
+  "homepage": "https://github.com/superjose/agent-plugin-conventions#readme",
+  "bugs": "https://github.com/superjose/agent-plugin-conventions/issues",
+  "exports": {
+    ".": "./index.js",
+    "./oxlint/*.json": "./oxlint/*.json"
+  },
+  "files": [
+    "index.js",
+    "domain-conventions.js",
+    "operation-layout.js",
+    "react-conventions.js",
+    "tanstack-conventions.js",
+    "oxlint",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.5.0",
+  "scripts": {
+    "test": "pnpm test:oxlint && pnpm test:eslint",
+    "test:oxlint": "vitest run",
+    "test:eslint": "CONVENTIONS_TEST_RUNNER=eslint vitest run",
+    "validate:package": "node scripts/validate-package.mjs"
+  },
+  "devDependencies": {
+    "oxlint": "1.71.0",
+    "vitest": "^3.2.4",
+    "eslint": "^9.39.0",
+    "@typescript-eslint/parser": "^8.46.0",
+    "typescript": "^5.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

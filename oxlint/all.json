@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "conventions/domain-file-kind": "error",
+    "conventions/domain-folder": "error",
+    "conventions/operation-name": "error",
+    "conventions/single-operation": "error",
+    "conventions/operation-folder": "error",
+    "conventions/operation-test-owner": "error",
+    "conventions/operation-effect-fn": "error",
+    "conventions/react-component-file": "error",
+    "conventions/react-component-input": "error",
+    "conventions/tanstack-middleware-file": "error"
+  }
+}

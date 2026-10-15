@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "conventions/react-component-file": "error",
+    "conventions/react-component-input": "error"
+  }
+}

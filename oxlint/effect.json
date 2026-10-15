@@ -1,0 +1,5 @@
+{
+  "rules": {
+    "conventions/operation-effect-fn": "error"
+  }
+}

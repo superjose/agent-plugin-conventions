@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "conventions/operation-name": "error",
+    "conventions/single-operation": "error",
+    "conventions/operation-folder": "error",
+    "conventions/operation-test-owner": "error"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "conventions/domain-file-kind": "error",
+    "conventions/domain-folder": "error"
+  }
+}
