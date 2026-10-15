@@ -10,7 +10,7 @@ const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "tsx" 
 tester.run("react-component-file", rules["react-component-file"], {
   valid: [
     {
-      filename: "/project/components/Button/Button.tsx",
+      filename: "/project/components/Button/index.tsx",
       code: "export function Button() { return <button />; }",
     },
     {
@@ -26,7 +26,13 @@ tester.run("react-component-file", rules["react-component-file"], {
       code: "export function Harness() { return <button />; }",
     },
   ],
+    // Route entries keep framework filenames, but ordinary components do not.
   invalid: [
+    {
+      filename: "/project/components/Button/Button.tsx",
+      code: "export function Button() { return <button />; }",
+      errors: [{ messageId: "location" }],
+    },
     {
       filename: "/project/components/button.tsx",
       code: "export function Button() { return <button />; }",
@@ -87,5 +93,18 @@ tester.run("react-component-input", rules["react-component-input"], {
       code: "type Props = { snapshot: string; retry(): void; discard(): void }; export function AutosaveStatus(props: Props) { return <p>{props.snapshot}</p>; }",
       errors: [{ messageId: "input" }],
     },
+  ],
+});
+
+tester.run("configured route directories", rules["react-component-file"], {
+  valid: [
+    { filename: "/project/apps/mobile/app/(tabs)/[id].tsx", options: [{ routeDirectories: ["apps/mobile/app"] }], code: "export default function Detail() { return <main />; }" },
+    { filename: "C:\\project\\apps\\mobile\\app\\_layout.tsx", options: [{ routeDirectories: ["apps/mobile/app"] }], code: "export default function Layout() { return <main />; }" },
+    { filename: "/project/apps/mobile/app/+not-found.tsx", options: [{ routeDirectories: ["apps/mobile/app"] }], code: "export default function Missing() { return <main />; }" },
+  ],
+  invalid: [
+    { filename: "/project/apps/mobile/app/Button.tsx", options: [{ routeDirectories: ["apps/mobile/app"] }], code: "export function Button() { return <button />; }", errors: [{ messageId: "location" }] },
+    { filename: "/project/apps/mobile/application/home.tsx", options: [{ routeDirectories: ["apps/mobile/app"] }], code: "export default function Home() { return <main />; }", errors: [{ messageId: "location" }] },
+    { filename: "/project/apps/mobile/app/home.tsx", code: "export default function Home() { return <main />; }", errors: [{ messageId: "location" }] },
   ],
 });

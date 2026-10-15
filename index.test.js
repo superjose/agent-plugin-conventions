@@ -162,3 +162,14 @@ tester.run("operation-effect-fn", rules["operation-effect-fn"], {
     },
   ],
 });
+
+for (const name of ["operation-name", "single-operation", "operation-effect-fn"]) {
+  tester.run(`${name} React Query hooks`, rules[name], {
+    valid: [
+      { filename: "/project/auth.hooks.ts", code: "export function useSessionQuery() {} export function useLoginMutation() {}" },
+      { filename: "/project/useQueryMutation.ts", code: "export function useEffectQuery() {} export function useClientEffectQuery() {}" },
+      { filename: "/project/queries/auth.hooks.ts", code: "export function useSessionQuery() {}" },
+    ],
+    invalid: [],
+  });
+}

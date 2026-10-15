@@ -166,12 +166,12 @@ Each exported React component lives in a PascalCase folder and matching file:
 
 ```text
 components/molecules/AutosaveStatus/
-  AutosaveStatus.tsx
+  index.tsx
   AutosaveStatus.test.tsx
 ```
 
 - `react-component-file` requires one exported JSX component per implementation
-  file and the `ComponentName/ComponentName.tsx` layout. Private subcomponents
+  file and the `ComponentName/index.tsx` layout. Private subcomponents
   may remain in the file. Component tests use `ComponentName.test.tsx` or
   `ComponentName.spec.tsx` in the same folder. TanStack file-route entrypoints
   are exempt from the layout check.
@@ -231,3 +231,17 @@ src/
 
 
 Lint checks syntax and layout, not semantic domain roles. File moves have no automatic fix.
+
+## Framework route entrypoints
+
+For Expo Router, configure `conventions/react-component-file` as
+`["error", { "routeDirectories": ["apps/senfi-app/app"] }]`.
+Directory paths match complete path segments in normalized filenames, independent of
+which workspace runs Oxlint. Only files with a default export are exempt. Keep reusable
+components/helpers outside the router directory. TanStack `routes/` files retain their
+existing exemption. Input-shape checks still apply to components in route entrypoints.
+
+Name-based operation detection requires PascalCase names ending in `Command` or `Query`.
+React hooks such as `useSessionQuery` do not opt into backend operation rules.
+Explicit `.command.ts`/`.query.ts` files and Effect operations in commands/queries folders
+remain checked, including incorrectly named exports.

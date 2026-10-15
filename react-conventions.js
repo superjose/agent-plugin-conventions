@@ -61,18 +61,28 @@ function exportedComponentNames(program) {
   return names;
 }
 
-function isRoute(filename) {
-  return filename.replaceAll("\\", "/").includes("/routes/");
+function isRoute(filename, program, directories) {
+  const normalized = filename.replaceAll("\\", "/");
+  if (normalized.includes("/routes/")) return true;
+  return program.body.some((node) => node.type === "ExportDefaultDeclaration") &&
+    directories.some((directory) => {
+      const root = directory.replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
+      return root && normalized.includes(`/${root}/`);
+    });
 }
 
 export const reactComponentFile = {
   meta: {
     type: "suggestion",
-    docs: { description: "Give each exported React component its own PascalCase folder and file" },
-    schema: [],
+    docs: { description: "Give each exported React component its own PascalCase folder and index.tsx" },
+    schema: [{
+      type: "object",
+      properties: { routeDirectories: { type: "array", items: { type: "string", minLength: 1 }, uniqueItems: true } },
+      additionalProperties: false,
+    }],
     messages: {
       count: "Export one React component per file; found {{count}}.",
-      location: "Move {{name}} to {{name}}/{{name}}.tsx.",
+      location: "Move {{name}} to {{name}}/index.tsx.",
       testLocation:
         "Name this component test {{name}}.test.tsx or {{name}}.spec.tsx inside its {{name}} folder.",
     },
@@ -81,7 +91,7 @@ export const reactComponentFile = {
     return {
       "Program:exit"(program) {
         const filename = context.filename.replaceAll("\\", "/");
-        if (!filename.endsWith(".tsx") || isRoute(filename)) return;
+        if (!filename.endsWith(".tsx") || isRoute(filename, program, context.options[0]?.routeDirectories ?? [])) return;
         const test = /^(.*)\.(test|spec)\.tsx$/.exec(path.posix.basename(filename));
         if (test) {
           const name = path.posix.basename(path.posix.dirname(filename));
@@ -101,7 +111,7 @@ export const reactComponentFile = {
         if (found.length !== 1) return;
         const [{ name, node }] = found;
         if (
-          path.posix.basename(filename) !== `${name}.tsx` ||
+          path.posix.basename(filename) !== "index.tsx" ||
           path.posix.basename(path.posix.dirname(filename)) !== name
         )
           context.report({ node, messageId: "location", data: { name } });

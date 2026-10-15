@@ -23,7 +23,7 @@ const functionNode = (node) =>
   ["ArrowFunctionExpression", "FunctionExpression", "FunctionDeclaration"].includes(
     unwrap(node)?.type,
   );
-const suffixKind = (name) => /(?:Command|Query)$/.exec(name)?.[0]?.toLowerCase();
+const suffixKind = (name) => /^[A-Z][A-Za-z0-9]*(Command|Query)$/.exec(name)?.[1]?.toLowerCase();
 
 // Resolve the actual import binding, including aliases and shadowed identifiers.
 function imported(context, node, importedName) {
