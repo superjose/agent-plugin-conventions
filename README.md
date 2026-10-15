@@ -118,14 +118,6 @@ They cannot infer whether an arbitrary helper call returns a function or whether
 an ordinary camelCase function in an incorrectly named file is an operation.
 Rules do not rename symbols, split files, or offer automatic fixes.
 
-## Development
-
-Run `pnpm --filter oxlint-plugin-conventions test` and
-`pnpm --filter oxlint-plugin-conventions lint`. Tests use `oxlint/plugins-dev`
-RuleTester with Vitest. Oxlint is pinned to 1.71.0 while its plugin API is alpha;
-upgrade it alongside the rule tests. The standard ESLint-compatible `create` API
-keeps per-file state isolated without a runtime helper package.
-
 ## Operation folders and test ownership
 
 An operation may remain flat until it has a test or helper. Then put its
