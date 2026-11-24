@@ -170,9 +170,8 @@ components/molecules/AutosaveStatus/
   AutosaveStatus.test.tsx
 ```
 
-- `react-component-file` requires one exported JSX component per implementation
-  file and the `ComponentName/index.tsx` layout. Private subcomponents
-  may remain in the file. Component tests use `ComponentName.test.tsx` or
+- `react-component-file` requires one JSX component per implementation
+  file, including private and nested components, and the `ComponentName/index.tsx` layout. Component tests use `ComponentName.test.tsx` or
   `ComponentName.spec.tsx` in the same folder. TanStack file-route entrypoints
   are exempt from the layout check.
 - `react-component-input` applies to public and private JSX components. With
@@ -237,7 +236,7 @@ Lint checks syntax and layout, not semantic domain roles. File moves have no aut
 For Expo Router, configure `conventions/react-component-file` as
 `["error", { "routeDirectories": ["apps/senfi-app/app"] }]`.
 Directory paths match complete path segments in normalized filenames, independent of
-which workspace runs Oxlint. Only files with a default export are exempt. Keep reusable
+which workspace runs Oxlint. Only files with a default export are exempt from naming checks; the single-component limit still applies. Keep reusable
 components/helpers outside the router directory. TanStack `routes/` files retain their
 existing exemption. Input-shape checks still apply to components in route entrypoints.
 
@@ -245,3 +244,15 @@ Name-based operation detection requires PascalCase names ending in `Command` or 
 React hooks such as `useSessionQuery` do not opt into backend operation rules.
 Explicit `.command.ts`/`.query.ts` files and Effect operations in commands/queries folders
 remain checked, including incorrectly named exports.
+
+## React Native themes
+
+`react-native-dynamic-theme` rejects value imports of `lightTheme`, `darkTheme`,
+and the static `theme` collection, including aliases and namespace access. Use
+`StyleSheet.create(theme => …)` or `useUnistyles().theme` for reactive styling.
+Type-only imports remain allowed. Theme definitions and Unistyles registration
+can declare/export these values locally.
+
+The nearest package.json must declare `react-native` in dependencies,
+peerDependencies, or devDependencies; web packages remain unaffected. Optional
+`nativeDirectories` adds explicit native roots (matching complete path segments).

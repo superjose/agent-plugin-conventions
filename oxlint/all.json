@@ -9,6 +9,7 @@
     "conventions/operation-effect-fn": "error",
     "conventions/react-component-file": "error",
     "conventions/react-component-input": "error",
-    "conventions/tanstack-middleware-file": "error"
+    "conventions/tanstack-middleware-file": "error",
+    "conventions/react-native-dynamic-theme": "error"
   }
 }

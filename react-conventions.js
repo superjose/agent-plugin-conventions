@@ -17,22 +17,28 @@ function containsJsx(node, seen = new Set()) {
 
 function declaredFunctions(program) {
   const functions = new Map();
-  for (const statement of program.body) {
-    const declaration = ["ExportNamedDeclaration", "ExportDefaultDeclaration"].includes(
-      statement.type,
-    )
-      ? statement.declaration
-      : statement;
-    if (declaration?.type === "FunctionDeclaration" && declaration.id)
-      functions.set(declaration.id.name, declaration);
-    if (declaration?.type === "VariableDeclaration")
-      for (const item of declaration.declarations)
-        if (
-          item.id.type === "Identifier" &&
-          ["ArrowFunctionExpression", "FunctionExpression"].includes(item.init?.type)
-        )
-          functions.set(item.id.name, item.init);
-  }
+  const visit = (node) => {
+    if (!node || typeof node !== "object") return;
+    if (node.type === "FunctionDeclaration" && node.id)
+      functions.set(node.id.name, node);
+    if (node.type === "VariableDeclarator" && node.id.type === "Identifier") {
+      let value = node.init;
+      // Recognize common component wrappers such as memo and forwardRef.
+      while (value?.type === "CallExpression") value = value.arguments[0];
+      if (["ArrowFunctionExpression", "FunctionExpression"].includes(value?.type))
+        functions.set(node.id.name, value);
+    }
+    if (node.type === "ExportDefaultDeclaration" &&
+        ["ArrowFunctionExpression", "FunctionExpression", "FunctionDeclaration"].includes(node.declaration?.type) &&
+        !node.declaration.id)
+      functions.set("DefaultComponent", node.declaration);
+    for (const [key, value] of Object.entries(node)) {
+      if (["parent", "loc", "range", "tokens", "comments"].includes(key)) continue;
+      if (Array.isArray(value)) value.forEach(visit);
+      else visit(value);
+    }
+  };
+  visit(program);
   return functions;
 }
 
@@ -42,24 +48,6 @@ function components(program) {
     .map(([name, node]) => ({ name, node }));
 }
 
-function exportedComponentNames(program) {
-  const names = new Set();
-  for (const statement of program.body) {
-    if (statement.type === "ExportDefaultDeclaration" && statement.declaration?.id)
-      names.add(statement.declaration.id.name);
-    if (statement.type !== "ExportNamedDeclaration" || statement.exportKind === "type") continue;
-    const declaration = statement.declaration;
-    if (declaration?.type === "FunctionDeclaration" && declaration.id)
-      names.add(declaration.id.name);
-    if (declaration?.type === "VariableDeclaration")
-      for (const item of declaration.declarations)
-        if (item.id.type === "Identifier") names.add(item.id.name);
-    for (const specifier of statement.specifiers)
-      if (!statement.source && specifier.exportKind !== "type")
-        names.add(specifier.local.name ?? specifier.local.value);
-  }
-  return names;
-}
 
 function isRoute(filename, program, directories) {
   const normalized = filename.replaceAll("\\", "/");
@@ -74,14 +62,14 @@ function isRoute(filename, program, directories) {
 export const reactComponentFile = {
   meta: {
     type: "suggestion",
-    docs: { description: "Give each exported React component its own PascalCase folder and index.tsx" },
+    docs: { description: "Give each React component its own PascalCase folder and index.tsx" },
     schema: [{
       type: "object",
       properties: { routeDirectories: { type: "array", items: { type: "string", minLength: 1 }, uniqueItems: true } },
       additionalProperties: false,
     }],
     messages: {
-      count: "Export one React component per file; found {{count}}.",
+      count: "Declare one React component per file; found {{count}}. Move additional components to their own folders.",
       location: "Move {{name}} to {{name}}/index.tsx.",
       testLocation:
         "Name this component test {{name}}.test.tsx or {{name}}.spec.tsx inside its {{name}} folder.",
@@ -91,7 +79,7 @@ export const reactComponentFile = {
     return {
       "Program:exit"(program) {
         const filename = context.filename.replaceAll("\\", "/");
-        if (!filename.endsWith(".tsx") || isRoute(filename, program, context.options[0]?.routeDirectories ?? [])) return;
+        if (!filename.endsWith(".tsx")) return;
         const test = /^(.*)\.(test|spec)\.tsx$/.exec(path.posix.basename(filename));
         if (test) {
           const name = path.posix.basename(path.posix.dirname(filename));
@@ -99,8 +87,7 @@ export const reactComponentFile = {
             context.report({ node: program, messageId: "testLocation", data: { name } });
           return;
         }
-        const exported = exportedComponentNames(program);
-        const found = components(program).filter(({ name }) => exported.has(name));
+        const found = components(program);
         if (found.length === 0) return;
         if (found.length > 1)
           context.report({
@@ -108,7 +95,7 @@ export const reactComponentFile = {
             messageId: "count",
             data: { count: String(found.length) },
           });
-        if (found.length !== 1) return;
+        if (found.length !== 1 || isRoute(filename, program, context.options[0]?.routeDirectories ?? [])) return;
         const [{ name, node }] = found;
         if (
           path.posix.basename(filename) !== "index.tsx" ||

@@ -20,6 +20,7 @@
     "domain-conventions.js",
     "operation-layout.js",
     "react-conventions.js",
+    "react-native-conventions.js",
     "tanstack-conventions.js",
     "oxlint",
     "README.md",

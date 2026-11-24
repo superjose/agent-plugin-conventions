@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const { version } = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
 import { domainFileKind, domainFolder } from "./domain-conventions.js";
 import { operationFolder, operationTestOwner } from "./operation-layout.js";
+import { reactNativeDynamicTheme } from "./react-native-conventions.js";
 import { reactComponentFile, reactComponentInput } from "./react-conventions.js";
 import { tanstackMiddlewareFile } from "./tanstack-conventions.js";
 
@@ -177,6 +178,7 @@ export const rules = {
   "domain-file-kind": domainFileKind,
   "domain-folder": domainFolder,
   "tanstack-middleware-file": tanstackMiddlewareFile,
+  "react-native-dynamic-theme": reactNativeDynamicTheme,
   "react-component-file": reactComponentFile,
   "react-component-input": reactComponentInput,
   "operation-folder": operationFolder,

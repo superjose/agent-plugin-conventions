@@ -14,7 +14,7 @@ try {
   execFileSync('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', join(temp, packed.filename)], { cwd: temp, stdio: 'pipe' });
   const installed = join(temp, 'node_modules/@superjose/agent-plugin-conventions');
   const { default: plugin, rules, configs } = await import(pathToFileURL(join(installed, 'index.js')));
-  assert.equal(Object.keys(rules).length, 10);
+  assert.equal(Object.keys(rules).length, 11);
   assert.equal(plugin.meta.version, JSON.parse(readFileSync(join(installed, 'package.json'))).version);
   const all = JSON.parse(readFileSync(join(installed, 'oxlint/all.json')));
   assert.deepEqual(configs.all.rules, all.rules);
@@ -41,5 +41,23 @@ try {
   const results = await eslint.lintFiles([valid, invalid]);
   assert.equal(results.find(r => r.filePath === valid).errorCount, 0);
   assert.equal(results.find(r => r.filePath === invalid).messages[0].ruleId, 'conventions/tanstack-middleware-file');
+  // Package detection must stop at the nearest manifest, so web siblings stay exempt.
+  const native = join(temp, 'apps/native');
+  const web = join(temp, 'apps/web');
+  mkdirSync(native, { recursive: true });
+  mkdirSync(web, { recursive: true });
+  writeFileSync(join(native, 'package.json'), JSON.stringify({ peerDependencies: { 'react-native': '*' } }));
+  writeFileSync(join(web, 'package.json'), JSON.stringify({ dependencies: { react: '*' } }));
+  for (const directory of [native, web])
+    writeFileSync(join(directory, 'theme.ts'), "import { lightTheme as fixed } from './tokens'; const color = fixed.colors.bgSurface;\n");
+  writeFileSync(join(temp, '.oxlintrc.json'), JSON.stringify({
+    jsPlugins: [{ name: 'conventions', specifier: '@superjose/agent-plugin-conventions' }],
+    rules: { 'conventions/react-native-dynamic-theme': 'error' }
+  }));
+  for (const [directory, status] of [[native, 1], [web, 0]]) {
+    const result = spawnSync(oxlint, ['-c', join(temp, '.oxlintrc.json'), join(directory, 'theme.ts')], { cwd: temp, encoding: 'utf8' });
+    assert.equal(result.status, status, result.stdout + result.stderr);
+    if (status) assert.match(result.stdout + result.stderr, /react-native-dynamic-theme/);
+  }
   console.log('Packed consumer validated: exports, all presets, Oxlint and ESLint valid/invalid files.');
 } finally { rmSync(temp, { recursive: true, force: true }); }
